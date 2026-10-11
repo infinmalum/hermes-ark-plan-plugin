@@ -26,14 +26,8 @@ def _register(name, aliases, display, mode, endpoint, key, models):
 
 
 _register("ark-agentplan", ("ark-plan", "volcengine-ark-plan", "ark-agent-plan"),
-          "Volcengine ARK Agent Plan (OpenAI Responses)", "codex_responses",
+          "Volcengine ARK Agent Plan", "codex_responses",
           "/api/plan/v3", "ARK_PLAN_API_KEY", _AGENT_MODELS)
-_register("ark-agentplan-anthropic", ("ark-agent-plan-anthropic", "ark-plan-anthropic"),
-          "Volcengine ARK Agent Plan (Anthropic)", "anthropic",
-          "/api/plan", "ARK_PLAN_API_KEY", _AGENT_MODELS)
 _register("ark-coding-plan", ("ark-coding", "volcengine-ark-coding-plan"),
-          "Volcengine ARK Coding Plan (OpenAI)", "chat_completions",
+          "Volcengine ARK Coding Plan", "chat_completions",
           "/api/coding/v3", "ARK_CODING_API_KEY", _CODING_MODELS)
-_register("ark-coding-plan-anthropic", ("ark-coding-anthropic",),
-          "Volcengine ARK Coding Plan (Anthropic)", "anthropic",
-          "/api/coding", "ARK_CODING_API_KEY", _CODING_MODELS)

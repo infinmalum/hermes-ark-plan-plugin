@@ -1,29 +1,31 @@
 # hermes-ark-plan-plugin
 
-Hermes provider plugin for Volcengine ARK Agent Plan and Coding Plan. Version 1.2.0.
+Hermes provider plugin for Volcengine ARK Agent Plan and Coding Plan. Version 1.3.0.
 
 ## Providers
 
 | Provider | Protocol | Base URL | Key variable |
 |---|---|---|---|
 | `ark-agentplan` | OpenAI Responses | `https://ark.cn-beijing.volces.com/api/plan/v3` | `ARK_PLAN_API_KEY` |
-| `ark-agentplan-anthropic` | Anthropic Messages | `https://ark.cn-beijing.volces.com/api/plan` | `ARK_PLAN_API_KEY` |
 | `ark-coding-plan` | OpenAI Chat Completions | `https://ark.cn-beijing.volces.com/api/coding/v3` | `ARK_CODING_API_KEY` |
-| `ark-coding-plan-anthropic` | Anthropic Messages | `https://ark.cn-beijing.volces.com/api/coding` | `ARK_CODING_API_KEY` |
 
-Agent Plan's existing Responses transport is preserved; its Anthropic provider is added.
-Coding Plan OpenAI uses `/chat/completions`; Anthropic providers use `/v1/messages`.
+Only OpenAI-compatible providers are registered: Agent Plan uses Responses;
+Coding Plan uses Chat Completions. Anthropic providers and their aliases were removed
+in v1.3.0. Existing users must switch any removed provider IDs to the corresponding
+`ark-agentplan` or `ark-coding-plan` provider.
 The two subscriptions use separate keys. No Claude/Codex settings or `ANTHROPIC_*`
 environment variables are modified.
 
 Aliases: `ark-plan`, `volcengine-ark-plan`, `ark-agent-plan` → Agent Plan Responses;
-`ark-plan-anthropic`, `ark-agent-plan-anthropic` → Agent Plan Anthropic;
-`ark-coding`, `volcengine-ark-coding-plan` → Coding Plan OpenAI;
-`ark-coding-anthropic` → Coding Plan Anthropic.
+`ark-coding`, `volcengine-ark-coding-plan` → Coding Plan OpenAI.
+
+The key setup and model selection pages now show one entry per subscription:
+`Volcengine ARK Agent Plan` and `Volcengine ARK Coding Plan`. Protocol details remain
+in the provider descriptions; Hermes desktop itself is not modified.
 
 ## Local model catalogs
 
-Both protocols of each subscription expose the same local catalog in Hermes.
+Each subscription exposes its curated local model catalog in Hermes.
 
 | Exact model ID | Agent Plan | Coding Plan |
 |---|---|---|
@@ -78,9 +80,7 @@ Never commit keys or put them in config.yaml.
 
 ```sh
 hermes chat --provider ark-coding-plan -m glm-5.3-flash
-hermes chat --provider ark-coding-plan-anthropic -m deepseek-v4.1-flash
 hermes chat --provider ark-agentplan -m glm-5.3-flash
-hermes chat --provider ark-agentplan-anthropic -m glm-5.3-flash
 ```
 
 To make Coding Plan the default:
@@ -98,13 +98,14 @@ The plugin does not automatically migrate the main provider or auxiliary tasks.
 python3 -m unittest discover -s tests -v
 ```
 
-Offline tests verify four providers, aliases, URLs, transports, credential isolation,
+Offline tests verify two OpenAI-compatible providers, aliases, URLs, transports, credential isolation,
 exact local catalogs and README consistency without spending API quota.
 Earlier Coding requests verified `glm-5.3`, `glm-5.3-flash` text (Flash over both
 protocols), and `doubao-seed-2.0-mini` text/image recognition. GLM rejected
 `thinking.type=disabled`; too-small token limits may leave only reasoning, no text.
-The newly added Agent Plan Anthropic provider needs an active Agent Plan key for
-live verification; its registration and endpoint are covered by offline tests.
+Agent Plan requires an active Agent Plan key for live verification; its registration
+and endpoint are covered by offline tests. Historical Anthropic endpoint tests do not
+mean this version registers an Anthropic provider.
 
 ## License
 

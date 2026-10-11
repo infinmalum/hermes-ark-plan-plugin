@@ -36,8 +36,9 @@ class PluginTests(unittest.TestCase):
             runpy.run_path(str(ROOT / '__init__.py'))
         self.profiles = {p.name: p for p in profiles}
 
-    def test_four_distinct_profiles(self):
-        self.assertEqual(set(self.profiles), {'ark-agentplan', 'ark-agentplan-anthropic', 'ark-coding-plan', 'ark-coding-plan-anthropic'})
+    def test_only_openai_profiles(self):
+        self.assertEqual(set(self.profiles), {'ark-agentplan', 'ark-coding-plan'})
+        self.assertTrue(all(p.api_mode in ('codex_responses', 'chat_completions') for p in self.profiles.values()))
 
     def test_agent_backward_compatibility(self):
         p = self.profiles['ark-agentplan']
@@ -46,15 +47,8 @@ class PluginTests(unittest.TestCase):
         self.assertEqual(p.env_vars, ('ARK_PLAN_API_KEY',))
         self.assertEqual(p.base_url, 'https://ark.cn-beijing.volces.com/api/plan/v3')
 
-    def test_agent_anthropic(self):
-        p = self.profiles["ark-agentplan-anthropic"]
-        self.assertEqual(p.api_mode, "anthropic")
-        self.assertEqual(p.base_url, "https://ark.cn-beijing.volces.com/api/plan")
-        self.assertEqual(p.env_vars, ("ARK_PLAN_API_KEY",))
-
     def test_coding_transports_and_credentials(self):
-        for name, mode, suffix in [('ark-coding-plan', 'chat_completions', '/api/coding/v3'),
-                                   ('ark-coding-plan-anthropic', 'anthropic', '/api/coding')]:
+        for name, mode, suffix in [('ark-coding-plan', 'chat_completions', '/api/coding/v3')]:
             p = self.profiles[name]
             self.assertEqual(p.api_mode, mode)
             self.assertEqual(p.base_url, 'https://ark.cn-beijing.volces.com' + suffix)
