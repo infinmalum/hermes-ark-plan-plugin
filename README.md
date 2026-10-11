@@ -1,12 +1,12 @@
 # hermes-ark-plan-plugin
 
-Hermes provider plugin for Volcengine ARK Agent Plan and Coding Plan. Version 1.5.0.
+Hermes provider plugin for Volcengine ARK Agent Plan and Coding Plan. Version 1.5.1.
 
 ## Providers
 
 | Provider | Protocol | Base URL | Key variable | Model list |
 |---|---|---|---|---|
-| `ark-agentplan` | OpenAI Responses | `https://ark.cn-beijing.volces.com/api/plan/v3` | `ARK_PLAN_API_KEY` | entered manually |
+| `ark-agentplan` | OpenAI Responses | `https://ark.cn-beijing.volces.com/api/plan/v3` | `ARK_PLAN_API_KEY` | read live |
 | `ark-coding-plan` | OpenAI Chat Completions | `https://ark.cn-beijing.volces.com/api/coding/v3` | `ARK_CODING_API_KEY` | read live |
 
 Only OpenAI-compatible providers are registered (Agent Plan → Responses, Coding Plan →
@@ -22,7 +22,7 @@ This plugin ships **no static model list**. `fallback_models` is empty for both
 providers, and a regression test fails the build if a model-id-looking literal is
 introduced into `__init__.py`.
 
-**Coding Plan — dynamic catalog.** At selection time the provider reads the plan's own
+**Both plans — dynamic catalogs.** At selection time the provider reads the plan's own
 `/models` endpoint and offers what it returns, so models appear and disappear with the
 account's catalog instead of with a plugin release. Rows are filtered to what a chat
 agent can actually use:
@@ -36,8 +36,10 @@ agent can actually use:
 The catalog is cached in-process for five minutes, and a user-configured `model.base_url`
 is followed (`<your-base-url>/models`) so a proxy deployment lists through the proxy.
 
-**Agent Plan — manual entry.** `/api/plan/v3/models` does not exist (verified 404), so
-the provider reports no catalog and the model id is typed instead:
+**Agent Plan also attempts `/api/plan/v3/models`.** A previous 404 was observed
+without a valid Agent Plan credential; it is not proof that the endpoint is absent.
+The current installation has no active Agent Plan key, so successful live listing
+for that subscription has not been verified. If listing fails, enter a model manually:
 
 ```sh
 hermes chat --provider ark-agentplan -m YOUR_AGENT_PLAN_MODEL_ID
@@ -100,7 +102,7 @@ exhausted Agent Plan key does not remove plugin support. Never commit keys or pu
 ```sh
 # Coding Plan: pick any live model from the picker, or type one
 hermes chat --provider ark-coding-plan -m deepseek-v4-1-flash-260910
-# Agent Plan: always typed
+# Agent Plan: select from its live list, or enter manually
 hermes chat --provider ark-agentplan -m YOUR_AGENT_PLAN_MODEL_ID
 ```
 

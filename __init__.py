@@ -2,9 +2,8 @@
 
 No model id is hardcoded anywhere in this plugin:
 
-* Coding Plan reads the plan's own live catalog at selection time and shows it
-  in Hermes's model picker.
-* Agent Plan has no catalog endpoint, so its model id is entered by the user.
+* Both plans attempt to read their own live /models catalog at selection time.
+* If a catalog request fails, users can still enter model ids manually.
 
 Manual entry stays available for both providers, which is also the escape hatch
 when the live catalog hides something an account can actually call.
@@ -41,8 +40,8 @@ def _is_selectable(row: object) -> bool:
     return "text" in outputs
 
 
-class ArkCodingPlanProfile(ProviderProfile):
-    """Coding Plan: live catalog, filtered, nothing hardcoded."""
+class ArkPlanProfile(ProviderProfile):
+    """Both subscriptions: live catalog, filtered, nothing hardcoded."""
 
     def fetch_models(
         self, *, api_key: str | None = None, base_url: str | None = None, timeout: float = 8.0
@@ -101,7 +100,7 @@ class ArkCodingPlanProfile(ProviderProfile):
         return rows if isinstance(rows, list) else None
 
 
-register_provider(ArkCodingPlanProfile(
+register_provider(ArkPlanProfile(
     name="ark-coding-plan",
     aliases=("ark-coding", "volcengine-ark-coding-plan"),
     display_name="Volcengine ARK Coding Plan",
@@ -116,17 +115,17 @@ register_provider(ArkCodingPlanProfile(
     fallback_models=(),
 ))
 
-register_provider(ProviderProfile(
+register_provider(ArkPlanProfile(
     name="ark-agentplan",
     aliases=("ark-plan", "volcengine-ark-plan", "ark-agent-plan"),
     display_name="Volcengine ARK Agent Plan",
-    description="火山方舟 Agent Plan — OpenAI Responses API, enter the model id",
+    description="火山方舟 Agent Plan — OpenAI Responses API, live model catalog",
     signup_url="https://console.volcengine.com/ark",
     api_mode="codex_responses",
     env_vars=("ARK_PLAN_API_KEY",),
     base_url=_BASE_URL + "/api/plan/v3",
     auth_type="api_key",
-    supports_model_listing=False,
-    supports_health_check=False,
+    supports_model_listing=True,
+    supports_health_check=True,
     fallback_models=(),
 ))

@@ -53,10 +53,15 @@ class PluginTests(unittest.TestCase):
         found = [m for m in literal.findall(SOURCE) if m != 'utf-8']
         self.assertEqual(found, [])
 
-    def test_agent_plan_has_no_catalog_and_manual_models(self):
+    def test_agent_plan_attempts_dynamic_catalog(self):
         agent = self.profiles['ark-agentplan']
         self.assertIn('ark-plan', agent.aliases)
-        self.assertFalse(agent.supports_model_listing)
+        self.assertTrue(agent.supports_model_listing)
+        with patch.object(type(agent), "_read_catalog", return_value=[
+            {"id": "account-model", "modalities": {"output_modalities": ["text"]}}
+        ]) as request:
+            self.assertEqual(agent.fetch_models(api_key="fixture-key"), ["account-model"])
+            self.assertEqual(request.call_args.args[0], agent.base_url + "/models")
         self.assertEqual(agent.env_vars, ('ARK_PLAN_API_KEY',))
         self.assertEqual(agent.base_url, 'https://ark.cn-beijing.volces.com/api/plan/v3')
 
