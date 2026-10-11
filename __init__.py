@@ -2,7 +2,7 @@
 from providers import register_provider
 from providers.base import ProviderProfile
 
-_AGENT_MODELS = ("glm-5.3", "glm-5.3-flash", "doubao-seed-2.0-lite", "doubao-seed-2.0-mini")
+_AGENT_MODELS = ("glm-5.3", "glm-5.3-flash", "doubao-seed-2.1-lite", "doubao-seed-2.0-mini")
 _CODING_MODELS = _AGENT_MODELS + ("deepseek-v4-pro", "deepseek-v4.1-flash")
 
 

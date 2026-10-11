@@ -1,6 +1,6 @@
 # hermes-ark-plan-plugin
 
-Hermes provider plugin for Volcengine ARK Agent Plan and Coding Plan. Version 1.3.0.
+Hermes provider plugin for Volcengine ARK Agent Plan and Coding Plan. Version 1.4.0.
 
 ## Providers
 
@@ -31,15 +31,15 @@ Each subscription exposes its curated local model catalog in Hermes.
 |---|---|---|
 | `glm-5.3` | Yes | Yes |
 | `glm-5.3-flash` | Yes | Yes |
-| `doubao-seed-2.0-lite` | Yes | Yes |
+| `doubao-seed-2.1-lite` | Yes | Yes |
 | `doubao-seed-2.0-mini` | Yes | Yes |
 | `deepseek-v4-pro` | No | Yes |
 | `deepseek-v4.1-flash` | No | Yes |
 
 **列出模型不代表账户一定有权限。** Catalog entries are local choices, not live
-entitlement checks. Manual model entry remains possible. `doubao-seed-2.0-lite` is
-retained as requested, but an earlier Coding request returned `UnsupportedModel`.
-DeepSeek IDs are preserved exactly as supplied; adding them does not certify availability.
+entitlement checks, and manual model entry remains possible. `doubao-seed-2.0-lite`
+was rejected by Coding Plan with `UnsupportedModel`, so it is replaced by
+`doubao-seed-2.1-lite`, which was verified live for text and image input.
 Remote model-list and `/models` health probes are disabled. An actual inference request
 is needed to validate credentials and model support.
 
@@ -100,8 +100,9 @@ python3 -m unittest discover -s tests -v
 
 Offline tests verify two OpenAI-compatible providers, aliases, URLs, transports, credential isolation,
 exact local catalogs and README consistency without spending API quota.
-Earlier Coding requests verified `glm-5.3`, `glm-5.3-flash` text (Flash over both
-protocols), and `doubao-seed-2.0-mini` text/image recognition. GLM rejected
+Verified live on Coding Plan: `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`,
+`doubao-seed-2.0-mini` and `doubao-seed-2.1-lite` (text and image input).
+`doubao-seed-2.0-lite` returns `UnsupportedModel`. GLM rejected
 `thinking.type=disabled`; too-small token limits may leave only reasoning, no text.
 Agent Plan requires an active Agent Plan key for live verification; its registration
 and endpoint are covered by offline tests. Historical Anthropic endpoint tests do not

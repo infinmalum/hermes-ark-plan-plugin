@@ -61,7 +61,7 @@ class PluginTests(unittest.TestCase):
             self.assertFalse(p.supports_model_listing)
             self.assertFalse(p.supports_health_check)
             self.assertEqual(p.fetch_models(), list(p.fallback_models))
-            expected = ('glm-5.3', 'glm-5.3-flash', 'doubao-seed-2.0-lite', 'doubao-seed-2.0-mini')
+            expected = ('glm-5.3', 'glm-5.3-flash', 'doubao-seed-2.1-lite', 'doubao-seed-2.0-mini')
             if p.name.startswith('ark-coding'):
                 expected += ('deepseek-v4-pro', 'deepseek-v4.1-flash')
             self.assertEqual(p.fallback_models, expected)
