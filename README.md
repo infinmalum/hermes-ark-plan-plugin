@@ -1,88 +1,110 @@
-# hermes-ark-agentplan-plugin
+# hermes-ark-plan-plugin
 
-[Hermes Agent](https://github.com/NousResearch/hermes-agent) model-provider plugin for the
-**Volcengine ARK Agent Plan** (火山方舟 Agent Plan). Talk to the plan's exclusive endpoint
-over the **OpenAI Responses API** wire protocol.
+Hermes provider plugin for Volcengine ARK Agent Plan and Coding Plan. Version 1.2.0.
 
-> 本插件面向火山方舟 **Agent Plan** 订阅。Coding Plan 的 endpoint 与 API Key 和 Agent Plan **互不通用**，见下文 [Coding Plan 用户](#coding-plan-用户)。
+## Providers
 
-## Features
+| Provider | Protocol | Base URL | Key variable |
+|---|---|---|---|
+| `ark-agentplan` | OpenAI Responses | `https://ark.cn-beijing.volces.com/api/plan/v3` | `ARK_PLAN_API_KEY` |
+| `ark-agentplan-anthropic` | Anthropic Messages | `https://ark.cn-beijing.volces.com/api/plan` | `ARK_PLAN_API_KEY` |
+| `ark-coding-plan` | OpenAI Chat Completions | `https://ark.cn-beijing.volces.com/api/coding/v3` | `ARK_CODING_API_KEY` |
+| `ark-coding-plan-anthropic` | Anthropic Messages | `https://ark.cn-beijing.volces.com/api/coding` | `ARK_CODING_API_KEY` |
 
-- Registers a first-class `ark-agentplan` provider in Hermes: appears in `hermes model`,
-  `hermes setup`, `--provider` flag, doctor checks, and the desktop model picker.
-- Uses the Responses API (`codex_responses` transport) — the plan endpoint's supported wire
-  for tool-calling agents. Verified working end-to-end with GLM and Doubao models.
-- Auxiliary-task friendly: point `auxiliary.title_generation` etc. at cheap plan models to
-  keep subscription side-tasks off your other providers.
+Agent Plan's existing Responses transport is preserved; its Anthropic provider is added.
+Coding Plan OpenAI uses `/chat/completions`; Anthropic providers use `/v1/messages`.
+The two subscriptions use separate keys. No Claude/Codex settings or `ANTHROPIC_*`
+environment variables are modified.
 
-## Why no model catalog?
+Aliases: `ark-plan`, `volcengine-ark-plan`, `ark-agent-plan` → Agent Plan Responses;
+`ark-plan-anthropic`, `ark-agent-plan-anthropic` → Agent Plan Anthropic;
+`ark-coding`, `volcengine-ark-coding-plan` → Coding Plan OpenAI;
+`ark-coding-anthropic` → Coding Plan Anthropic.
 
-ARK Plan endpoints do **not** expose a `/models` listing (all candidate paths return 404 —
-models are determined by your subscription tier, not enumerable via API). This plugin
-therefore ships **no fallback model list**. Specify the model manually:
+## Local model catalogs
 
-```bash
-# One-off
-hermes chat --provider ark-agentplan -m glm-5.3-flash
+Both protocols of each subscription expose the same local catalog in Hermes.
 
-# Persist as default (via the picker's manual entry, or config)
-hermes config set model.provider ark-agentplan
-hermes config set model.default glm-5.3-flash
-```
+| Exact model ID | Agent Plan | Coding Plan |
+|---|---|---|
+| `glm-5.3` | Yes | Yes |
+| `glm-5.3-flash` | Yes | Yes |
+| `doubao-seed-2.0-lite` | Yes | Yes |
+| `doubao-seed-2.0-mini` | Yes | Yes |
+| `deepseek-v4-pro` | No | Yes |
+| `deepseek-v4.1-flash` | No | Yes |
 
-Model names known to exist on Agent Plan tiers (verify against your own subscription —
-names change, and the plan console lists what your tier includes):
-
-- `glm-5.3` / `glm-5.3-flash`
-- `doubao-seed-2.0-lite` / `doubao-seed-2.0-mini`
+**列出模型不代表账户一定有权限。** Catalog entries are local choices, not live
+entitlement checks. Manual model entry remains possible. `doubao-seed-2.0-lite` is
+retained as requested, but an earlier Coding request returned `UnsupportedModel`.
+DeepSeek IDs are preserved exactly as supplied; adding them does not certify availability.
+Remote model-list and `/models` health probes are disabled. An actual inference request
+is needed to validate credentials and model support.
 
 ## Install
 
-### Via Hermes plugin installer
-
-```bash
-hermes plugins install infinmalum/hermes-ark-agentplan-plugin
+```sh
+hermes plugins install infinmalum/hermes-ark-plan-plugin
 ```
 
-### Manual
+Manual installation (fish-compatible):
 
-```bash
-git clone https://github.com/infinmalum/hermes-ark-agentplan-plugin
-mkdir -p ~/.hermes/plugins/model-providers/
-ln -s "$(pwd)/hermes-ark-agentplan-plugin" ~/.hermes/plugins/model-providers/ark-agentplan
+```fish
+git clone https://github.com/infinmalum/hermes-ark-plan-plugin.git
+mkdir -p ~/.hermes/plugins/model-providers
+ln -s "$PWD/hermes-ark-plan-plugin" ~/.hermes/plugins/model-providers/ark-plan
 ```
 
-## API Key
+Update an existing `ark-plan` / `ark-agentplan` installation; do not load two copies.
+For named profiles use that profile's `$HERMES_HOME`. Restart a running client if the
+old providers or model catalog are still shown.
 
-1. Subscribe to Agent Plan in the [ARK console](https://console.volcengine.com/ark).
-2. Create an **Agent Plan API Key** (Coding Plan keys are rejected by this endpoint).
-3. Put it in `~/.hermes/.env`:
+## Keys
 
-```bash
-ARK_PLAN_API_KEY=ark-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-xxxx
+Store only the subscriptions you use in the active Hermes home's `.env`
+(default `~/.hermes/.env`):
+
+```dotenv
+# Optional, for Agent Plan only
+ARK_PLAN_API_KEY=YOUR_AGENT_PLAN_KEY
+# Optional, for Coding Plan only
+ARK_CODING_API_KEY=YOUR_CODING_PLAN_KEY
 ```
 
-## Endpoint & wire protocol
+Removing an exhausted Agent Plan key does not remove plugin support.
+Never commit keys or put them in config.yaml.
 
-| | |
-|---|---|
-| Base URL | `https://ark.cn-beijing.volces.com/api/plan/v3` |
-| Protocol | OpenAI **Responses API** (`/responses`) |
-| Auth | `Authorization: Bearer <Agent Plan API Key>` |
+## Usage
 
-Anthropic-protocol tooling should use the plan's exclusive `/api/plan` base URL instead
-(that's the `ANTHROPIC_BASE_URL` Claude Code uses) — this plugin covers the OpenAI/Responses
-side that Hermes runs on.
+```sh
+hermes chat --provider ark-coding-plan -m glm-5.3-flash
+hermes chat --provider ark-coding-plan-anthropic -m deepseek-v4.1-flash
+hermes chat --provider ark-agentplan -m glm-5.3-flash
+hermes chat --provider ark-agentplan-anthropic -m glm-5.3-flash
+```
 
-## Coding Plan users
+To make Coding Plan the default:
 
-Coding Plan (`/api/coding`) uses different endpoints and keys. Fork/adjust:
+```sh
+hermes config set model.provider ark-coding-plan
+hermes config set model.default glm-5.3-flash
+```
 
-- `base_url` → `https://ark.cn-beijing.volces.com/api/coding/v3` (verify the `/v3` suffix
-  against your plan docs; Coding Plan's Responses-API path differs from Agent Plan's)
-- `env_vars` → e.g. `ARK_CODING_API_KEY`
+The plugin does not automatically migrate the main provider or auxiliary tasks.
 
-Untested by the author — PRs welcome.
+## Verification
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+Offline tests verify four providers, aliases, URLs, transports, credential isolation,
+exact local catalogs and README consistency without spending API quota.
+Earlier Coding requests verified `glm-5.3`, `glm-5.3-flash` text (Flash over both
+protocols), and `doubao-seed-2.0-mini` text/image recognition. GLM rejected
+`thinking.type=disabled`; too-small token limits may leave only reasoning, no text.
+The newly added Agent Plan Anthropic provider needs an active Agent Plan key for
+live verification; its registration and endpoint are covered by offline tests.
 
 ## License
 

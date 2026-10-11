@@ -1,28 +1,39 @@
-"""Volcengine ARK Agent Plan provider (OpenAI Responses API).
-
-Hermes model-provider plugin for the Volcengine ARK Agent Plan subscription
-(火山方舟 Agent Plan). Talks the OpenAI Responses wire protocol against the
-plan's exclusive endpoint. Agent Plan keys do NOT work on the Coding Plan
-endpoint and vice versa — see README.
-
-This plugin deliberately ships NO model catalog: ARK Plan endpoints do not
-expose a /models listing (verified 404 on all candidate paths). Set the model
-manually, e.g. `hermes chat --provider ark-agentplan -m glm-5.3-flash`, or via
-the `hermes model` picker's manual-entry option.
-"""
-
+"""Volcengine ARK subscription providers with isolated credentials and catalogs."""
 from providers import register_provider
 from providers.base import ProviderProfile
 
-register_provider(ProviderProfile(
-    name="ark-agentplan",
-    aliases=("ark-plan", "volcengine-ark-plan", "ark-agent-plan"),
-    display_name="Volcengine ARK Agent Plan",
-    description="火山方舟 Agent Plan — OpenAI Responses API (set model manually)",
-    signup_url="https://console.volcengine.com/ark",
-    api_mode="codex_responses",
-    env_vars=("ARK_PLAN_API_KEY",),
-    base_url="https://ark.cn-beijing.volces.com/api/plan/v3",
-    auth_type="api_key",
-    fallback_models=(),
-))
+_AGENT_MODELS = ("glm-5.3", "glm-5.3-flash", "doubao-seed-2.0-lite", "doubao-seed-2.0-mini")
+_CODING_MODELS = _AGENT_MODELS + ("deepseek-v4-pro", "deepseek-v4.1-flash")
+
+
+class ArkPlanProfile(ProviderProfile):
+    """Expose a curated local catalog, without probing subscription /models."""
+
+    def fetch_models(self, **kwargs) -> list[str]:
+        return list(self.fallback_models)
+
+
+def _register(name, aliases, display, mode, endpoint, key, models):
+    register_provider(ArkPlanProfile(
+        name=name, aliases=aliases, display_name=display,
+        description=display + " — " + mode,
+        signup_url="https://console.volcengine.com/ark",
+        api_mode=mode, env_vars=(key,),
+        base_url="https://ark.cn-beijing.volces.com" + endpoint,
+        auth_type="api_key", supports_model_listing=False,
+        supports_health_check=False, fallback_models=models,
+    ))
+
+
+_register("ark-agentplan", ("ark-plan", "volcengine-ark-plan", "ark-agent-plan"),
+          "Volcengine ARK Agent Plan (OpenAI Responses)", "codex_responses",
+          "/api/plan/v3", "ARK_PLAN_API_KEY", _AGENT_MODELS)
+_register("ark-agentplan-anthropic", ("ark-agent-plan-anthropic", "ark-plan-anthropic"),
+          "Volcengine ARK Agent Plan (Anthropic)", "anthropic",
+          "/api/plan", "ARK_PLAN_API_KEY", _AGENT_MODELS)
+_register("ark-coding-plan", ("ark-coding", "volcengine-ark-coding-plan"),
+          "Volcengine ARK Coding Plan (OpenAI)", "chat_completions",
+          "/api/coding/v3", "ARK_CODING_API_KEY", _CODING_MODELS)
+_register("ark-coding-plan-anthropic", ("ark-coding-anthropic",),
+          "Volcengine ARK Coding Plan (Anthropic)", "anthropic",
+          "/api/coding", "ARK_CODING_API_KEY", _CODING_MODELS)

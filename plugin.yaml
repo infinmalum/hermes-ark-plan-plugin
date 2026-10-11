@@ -1,5 +1,5 @@
-name: ark-agentplan
+name: ark-plan
 kind: model-provider
-version: 1.0.0
-description: Volcengine ARK Agent Plan (火山方舟 Agent Plan) — OpenAI Responses API
+version: 1.2.0
+description: Volcengine ARK Agent Plan and Coding Plan — OpenAI and Anthropic APIs
 author: infinmalum
